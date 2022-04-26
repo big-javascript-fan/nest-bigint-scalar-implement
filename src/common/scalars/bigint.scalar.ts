@@ -3,7 +3,7 @@ import { Kind } from 'graphql';
 
 @Scalar('BigInt', () => BigInt)
 export class BigIntScalar implements CustomScalar<string, BigInt> {
-  description = 'Bigint custom scalar type';
+  description = 'BigInt custom scalar type';
 
   parseValue(value: bigint): BigInt {
     return value; // value from the client

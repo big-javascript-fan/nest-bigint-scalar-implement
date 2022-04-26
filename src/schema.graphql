@@ -4,112 +4,181 @@
 
 type Auth {
   """JWT access token"""
-  accessToken: JWT!
+  accessToken: String!
 
   """JWT refresh token"""
-  refreshToken: JWT!
+  refreshToken: String!
   user: User!
 }
 
-"""Bigint custom scalar type"""
-scalar BigInt
-
-input ChangePasswordInput {
-  newPassword: String!
-  oldPassword: String!
+input AuthByWalletInput {
+  network: String = "mumbai"
+  signature: String!
+  wallet: String!
 }
 
-input CreatePostInput {
-  content: String!
-  title: String!
+input CreateEstateInput {
+  buyerWalletAddress: String
+  chainId: Int!
+  nftId: Int!
+  sellerDeadline: Date!
+  sellerPrice: Int!
+  sellerWalletAddress: String!
+  signature: String!
+  status: Int
+  tokenAddress: String!
+  type: Int!
 }
 
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
+"""Date custom scalar type"""
+scalar Date
 
-"""
-A field whose value is a JSON Web Token (JWT): https://jwt.io/introduction.
-"""
-scalar JWT
-
-input LoginInput {
-  email: String!
-  password: String!
-}
-
-type Mutation {
-  changePassword(data: ChangePasswordInput!): User!
-  createPost(data: CreatePostInput!): Post!
-  login(data: LoginInput!): Auth!
-  refreshToken(token: JWT!): Token!
-  signup(data: SignupInput!): Auth!
-  updateUser(data: UpdateUserInput!): User!
-}
-
-type Post {
-  author: User!
-  content: String!
+type Estate {
+  """Identifies the date and time when the offer closed."""
+  closedAt: Date
 
   """Identifies the date and time when the object was created."""
-  createdAt: DateTime!
-  id: BigInt!
-  published: Boolean!
-  title: String!
+  createdAt: Date!
+
+  """Identifies the date and time when the offer expire."""
+  expireAt: Date
+  id: Int!
+  nft: Nft
+  price: Float!
+  seller: String!
+  sellerSignature: String
+  status: EstateStatus!
+  tokenAddress: String
+  tx: String
+  type: EstateType!
 
   """Identifies the date and time when the object was last updated."""
-  updatedAt: DateTime!
+  updatedAt: Date!
+}
+
+"""Possible offers statuses"""
+enum EstateStatus {
+  active
+  finished
+}
+
+"""Offer or Sale"""
+enum EstateType {
+  offer
+  sale
+}
+
+type Estates {
+  estates: [Estate!]
+  estatesCount: Int
+}
+
+input GetNonceByWalletInput {
+  wallet: String!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+
+type Mutation {
+  authByWallet(data: AuthByWalletInput!): Auth!
+  createEstate(data: CreateEstateInput!): Estate!
+  refreshToken(token: String!): Token!
+  updateEstate(data: UpdateEstateInput!): Estate!
+  updateNftMetadata(data: String, meta_id: Int): NftMetadata!
+  updateSaleInfoJson(data: String, nftId: Int): Nft!
+}
+
+type Nft {
+  """Identifies the date and time when the object was created."""
+  createdAt: Date!
+  estates: [Estate!]
+  id: Int!
+  isOnMarketplace: Boolean!
+  lastSale: Date!
+  nftMetadata: NftMetadata
+  nftMetadataId: Int
+  ownerWalletAddress: String
+  saleInfo: JSON
+  show: Boolean
+  status: Int
+  tokenId: String
+
+  """Identifies the date and time when the object was last updated."""
+  updatedAt: Date!
+}
+
+type NftMetadata {
+  id: Int!
+  metadata: JSON
+}
+
+type Nfts {
+  nfts: [Nft!]
+  nftsCount: Int
+}
+
+type Nonce {
+  nonce: String!
+}
+
+input OrderByInput {
+  created_at: String
+  price: String
+}
+
+input PriceWhereInput {
+  gt: Int!
+  lt: Int!
 }
 
 type Query {
-  hello(name: String!): String!
-  helloWorld: String!
+  findMyOffersBy(onePage: Int, orderBy: OrderByInput, page: Int, price: PriceWhereInput, searchText: String, status: Int, wallet: String): Estates!
+  findNfts(limit: Int, onePage: Int, page: Int, searchText: String, sortList: String): Nfts!
+  findOffersBy(onePage: Int, orderBy: OrderByInput, page: Int, price: PriceWhereInput, searchText: String, status: Int, wallet: String): Estates!
+  findOffersByWalletAddress(type: Int!, wallet: String!): Estates!
+  findSalesBy(onePage: Int, orderBy: OrderByInput, page: Int, price: PriceWhereInput, searchText: String, status: Int): Estates!
+  findSalesByWalletAddress(wallet: String!): Estates!
+  findUsers(limit: Int, onePage: Int, page: Int, sortList: String): Users!
+  getNftListByWallet(wallet: String!): Nfts!
+  getNonceByWallet(data: GetNonceByWalletInput!): Nonce!
   me: User!
-  post(postId: Int!): Post!
-  userPosts(userId: Int!): [Post!]!
-}
-
-"""User role"""
-enum Role {
-  ADMIN
-  USER
-}
-
-input SignupInput {
-  email: String!
-  firstname: String
-  lastname: String
-  password: String!
-}
-
-type Subscription {
-  postCreated: Post!
+  nft(id: Int): Nft!
+  offer(id: Int): Estate!
+  user(id: Int, walletAddress: String): User!
 }
 
 type Token {
   """JWT access token"""
-  accessToken: JWT!
+  accessToken: String!
 
   """JWT refresh token"""
-  refreshToken: JWT!
+  refreshToken: String!
 }
 
-input UpdateUserInput {
-  firstname: String
-  lastname: String
+input UpdateEstateInput {
+  chainId: Int!
+  id: Int!
+  nftId: Int!
+  sellerDeadline: Date!
+  sellerPrice: Int!
+  sellerWalletAddress: String!
+  signature: String!
+  status: Int
+  tokenAddress: String!
 }
 
 type User {
-  """Identifies the date and time when the object was created."""
-  createdAt: DateTime!
-  email: String!
-  firstname: String
-  id: BigInt!
-  lastname: String
-  posts: [Post!]!
-  role: Role!
+  id: Int!
+  lastSignAt: Date!
+  nonce: String
+  status: Int
+  walletAddress: String!
+}
 
-  """Identifies the date and time when the object was last updated."""
-  updatedAt: DateTime!
+type Users {
+  users: [User!]
+  usersCount: Int
 }

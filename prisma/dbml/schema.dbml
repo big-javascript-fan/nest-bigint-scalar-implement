@@ -2,32 +2,137 @@
 //// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 //// ------------------------------------------------------
 
-Table User {
+Table blockchains {
   id BigInt [pk, increment]
+  name String
+  status Int
+  rpcProvider String
+  wsProvider String
+  currency String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  contracts contracts [not null]
+}
+
+Table contracts {
+  id BigInt [pk, increment]
+  address String [not null, default: '']
+  blockchainId BigInt [not null]
+  name String [not null, default: '']
+  abi Json [not null]
+  status Int [not null, default: 1]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  listenEvents Boolean [not null, default: false]
+  initialBlockNumber Int [not null, default: 0]
+  lastBlockNumber Int [not null, default: 0]
+  transactions transactions [not null]
+  blockchain blockchains [not null]
+}
+
+Table orders {
+  id BigInt [pk, increment]
+  userId BigInt [not null]
+  status Int [not null, default: 0]
+  quantity Int [not null, default: 0]
+  type String [not null]
+  source String
+  campaignId String
+  sub String
+  utmSource String
+  utmMedium String
+  utmCampaign String
+  utmContent String
+  transactionHash String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  user users [not null]
+}
+
+Table users {
+  id BigInt [pk, increment]
+  status Int [not null]
+  walletAddress String [unique]
+  nonce String
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
-  email String [unique, not null]
-  password String [not null]
-  firstname String
-  lastname String
-  posts Post [not null]
-  role Role [not null]
+  lastSignAt DateTime
+  orders orders [not null]
 }
 
-Table Post {
+Table transactions {
   id BigInt [pk, increment]
+  contractId BigInt [not null]
+  transactionHash String [unique, not null]
+  transactionIndex BigInt [not null]
+  blockHash String [not null]
+  blockNumber BigInt [not null]
+  datetime DateTime [not null]
+  input String
+  decodedInput Json
+  txNameFromInput String
+  from String
+  to String
+  status Boolean [default: false]
+  value BigInt [not null, default: 0]
+  gas BigInt [not null]
+  cumulativeGasUsed BigInt [not null, default: 0]
+  gasPrice BigInt [not null]
   createdAt DateTime [default: `now()`, not null]
-  updatedAt DateTime [not null]
-  published Boolean [not null]
-  title String [not null]
-  content String
-  author User
-  authorId BigInt
+  updatedAt DateTime
+  contract contracts [not null]
 }
 
-Enum Role {
-  ADMIN
-  USER
+Table nfts {
+  id BigInt [pk, increment]
+  nft_metadata_id BigInt
+  sale_info Json
+  status Int
+  show Boolean
+  created_at DateTime [not null]
+  updated_at DateTime [not null]
+  nft_metadata nft_metadata
+  owner_wallet_address String
+  token_id String [unique, not null]
+  is_on_marketplace Boolean [not null, default: false]
+  last_sale DateTime
+  estates estates [not null]
 }
 
-Ref: Post.authorId > User.id
+Table nft_metadata {
+  id BigInt [pk, increment]
+  metadata Json
+  token_id String [unique, not null]
+  created_at DateTime [not null]
+  updated_at DateTime [not null]
+  nfts nfts [not null]
+}
+
+Table estates {
+  id BigInt [pk, increment]
+  nft_id BigInt
+  type Int [not null]
+  token_address String [not null]
+  price Float [not null, default: 0]
+  seller String [not null]
+  buyer String
+  seller_signature String [not null]
+  buyer_signature String
+  tx String [unique]
+  status Int [not null, default: 0]
+  created_at DateTime [default: `now()`, not null]
+  updated_at DateTime [not null]
+  closed_at DateTime
+  expire_at DateTime
+  nft nfts
+}
+
+Ref: contracts.blockchainId > blockchains.id
+
+Ref: orders.userId > users.id
+
+Ref: transactions.contractId > contracts.id
+
+Ref: nfts.nft_metadata_id > nft_metadata.id
+
+Ref: estates.nft_id > nfts.id

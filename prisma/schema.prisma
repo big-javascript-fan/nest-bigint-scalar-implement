@@ -1,41 +1,155 @@
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
-  provider = "prisma-client-js"
-  // previewFeatures = []
+  provider        = "prisma-client-js"
+  previewFeatures = ["selectRelationCount", "filterJson", "orderByRelation"]
 }
 
 generator dbml {
   provider = "prisma-dbml-generator"
 }
 
-model User {
-  id        BigInt   @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  email     String   @unique
-  password  String
-  firstname String?
-  lastname  String?
-  posts     Post[]
-  role      Role
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-model Post {
-  id        BigInt   @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  published Boolean
-  title     String
-  content   String?
-  author    User?    @relation(fields: [authorId], references: [id])
-  authorId  BigInt?
+model blockchains {
+  id          BigInt    @id @default(autoincrement())
+  name        String?   @db.VarChar(100)
+  status      Int?
+  rpcProvider String?
+  wsProvider  String?
+  currency    String
+  createdAt   DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime? @updatedAt @db.Timestamp(6)
+
+  contracts contracts[]
 }
 
-enum Role {
-  ADMIN
-  USER
+model contracts {
+  id                 BigInt    @id @default(autoincrement())
+  address            String    @default("") @db.VarChar(255)
+  blockchainId       BigInt
+  name               String    @default("")
+  abi                Json
+  status             Int       @default(1)
+  createdAt          DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime? @updatedAt @db.Timestamp(6)
+  listenEvents       Boolean   @default(false)
+  initialBlockNumber Int       @default(0)
+  lastBlockNumber    Int       @default(0)
+
+  transactions transactions[]
+  blockchain   blockchains    @relation(fields: [blockchainId], references: [id])
+
+  @@index([blockchainId], name: "index_contracts_on_blockchain_id")
+}
+
+model orders {
+  id              BigInt    @id @default(autoincrement())
+  userId          BigInt
+  status          Int       @default(0)
+  quantity        Int       @default(0)
+  type            String
+  source          String?
+  campaignId      String?
+  sub             String?
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  utmContent      String?
+  transactionHash String?
+  createdAt       DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime? @updatedAt @db.Timestamp(6)
+
+  user users @relation(fields: [userId], references: [id])
+  @@index([userId], name: "index_orders_on_user_id")
+}
+
+model users {
+  id            BigInt    @id @default(autoincrement())
+  status        Int
+  walletAddress String?   @unique @db.VarChar(50)
+  nonce         String?   @db.VarChar(50)
+  createdAt     DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamp(6)
+  lastSignAt    DateTime? @db.Timestamp(6)
+
+  orders orders[]
+}
+
+model transactions {
+  id                BigInt    @id @default(autoincrement())
+  contractId        BigInt
+  transactionHash   String    @unique
+  transactionIndex  BigInt
+  blockHash         String
+  blockNumber       BigInt
+  datetime          DateTime  @db.Timestamp(6)
+  input             String?
+  decodedInput      Json?
+  txNameFromInput   String?
+  from              String?
+  to                String?
+  status            Boolean?  @default(false)
+  value             BigInt    @default(0)
+  gas               BigInt
+  cumulativeGasUsed BigInt    @default(0)
+  gasPrice          BigInt
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime? @updatedAt @db.Timestamp(6)
+
+  contract contracts @relation(fields: [contractId], references: [id])
+
+  @@index([contractId], name: "index_transactions_on_transaction_id")
+}
+
+model nfts {
+  id                   BigInt        @id @default(autoincrement())
+  nft_metadata_id      BigInt?
+  sale_info            Json?
+  status               Int?
+  show                 Boolean?
+  created_at           DateTime      @db.Timestamp(6)
+  updated_at           DateTime      @db.Timestamp(6)
+  nft_metadata         nft_metadata? @relation(fields: [nft_metadata_id], references: [id])
+  owner_wallet_address String?       @db.VarChar(50)
+  token_id             String        @unique
+  is_on_marketplace    Boolean       @default(false)
+  last_sale            DateTime?     @db.Timestamp(6)
+  estates              estates[]
+
+  @@index([nft_metadata_id], name: "index_nfts_on_nft_metadata_id")
+}
+
+model nft_metadata {
+  id         BigInt   @id @default(autoincrement())
+  metadata   Json?
+  token_id   String   @unique
+  created_at DateTime @db.Timestamp(6)
+  updated_at DateTime @db.Timestamp(6)
+  nfts       nfts[]
+}
+
+model estates {
+  id               BigInt    @id @default(autoincrement())
+  nft_id           BigInt?
+  type             Int
+  token_address    String
+  price            Float     @default(0.0)
+  seller           String
+  buyer            String?
+  seller_signature String
+  buyer_signature  String?
+  tx               String?   @unique @db.VarChar(100)
+  status           Int       @default(0) @db.SmallInt
+  created_at       DateTime  @default(now()) @db.Timestamp(6)
+  updated_at       DateTime  @updatedAt @db.Timestamp(6)
+  closed_at        DateTime? @db.Timestamp(6)
+  expire_at        DateTime? @db.Timestamp(6)
+
+  nft nfts? @relation(fields: [nft_id], references: [id])
+
+  @@index([nft_id], name: "index_sales_on_nft_id")
+  @@index([closed_at], name: "index_sales_on_closed_at")
+  @@index([status], name: "index_sales_on_status")
 }

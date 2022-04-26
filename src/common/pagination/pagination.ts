@@ -5,8 +5,8 @@ import { PageInfo } from './page-info.model';
 export default function Paginated<TItem>(TItemClass: Type<TItem>) {
   @ObjectType(`${TItemClass.name}Edge`)
   abstract class EdgeType {
-    @Field(() => String)
-    cursor: string;
+    @Field(() => BigInt)
+    cursor: BigInt;
 
     @Field(() => TItemClass)
     node: TItem;
@@ -17,9 +17,6 @@ export default function Paginated<TItem>(TItemClass: Type<TItem>) {
   abstract class PaginatedType {
     @Field(() => [EdgeType], { nullable: true })
     edges: Array<EdgeType>;
-
-    // @Field((type) => [TItemClass], { nullable: true })
-    // nodes: Array<TItem>;
 
     @Field(() => PageInfo)
     pageInfo: PageInfo;
