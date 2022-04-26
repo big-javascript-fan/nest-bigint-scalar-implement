@@ -12,6 +12,7 @@ import config from 'src/common/configs/config';
 import { loggingMiddleware } from 'src/common/middleware/logging.middleware';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GqlConfigService } from './gql-config.service';
+import { BigIntScalar } from './common/scalars/bigint.scalar';
 
 @Module({
   imports: [
@@ -33,6 +34,6 @@ import { GqlConfigService } from './gql-config.service';
     PostsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AppResolver],
+  providers: [AppService, AppResolver, BigIntScalar],
 })
 export class AppModule {}

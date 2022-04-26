@@ -11,6 +11,9 @@ type Auth {
   user: User!
 }
 
+"""Bigint custom scalar type"""
+scalar BigInt
+
 input ChangePasswordInput {
   newPassword: String!
   oldPassword: String!
@@ -45,28 +48,13 @@ type Mutation {
   updateUser(data: UpdateUserInput!): User!
 }
 
-"""
-Possible directions in which to order a list of items when provided an `orderBy` argument.
-"""
-enum OrderDirection {
-  asc
-  desc
-}
-
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
 type Post {
   author: User!
   content: String!
 
   """Identifies the date and time when the object was created."""
   createdAt: DateTime!
-  id: ID!
+  id: BigInt!
   published: Boolean!
   title: String!
 
@@ -74,39 +62,12 @@ type Post {
   updatedAt: DateTime!
 }
 
-type PostConnection {
-  edges: [PostEdge!]
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type PostEdge {
-  cursor: String!
-  node: Post!
-}
-
-input PostOrder {
-  direction: OrderDirection!
-  field: PostOrderField!
-}
-
-"""Properties by which post connections can be ordered."""
-enum PostOrderField {
-  content
-  createdAt
-  id
-  published
-  title
-  updatedAt
-}
-
 type Query {
   hello(name: String!): String!
   helloWorld: String!
   me: User!
-  post(postId: String!): Post!
-  publishedPosts(after: String, before: String, first: Int, last: Int, orderBy: PostOrder, query: String, skip: Int): PostConnection!
-  userPosts(userId: String!): [Post!]!
+  post(postId: Int!): Post!
+  userPosts(userId: Int!): [Post!]!
 }
 
 """User role"""
@@ -144,7 +105,7 @@ type User {
   createdAt: DateTime!
   email: String!
   firstname: String
-  id: ID!
+  id: BigInt!
   lastname: String
   posts: [Post!]!
   role: Role!

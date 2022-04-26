@@ -1,5 +1,5 @@
 export interface JwtDto {
-  userId: string;
+  userId: bigint;
   /**
    * Issued at
    */

@@ -51,40 +51,40 @@ export class PostsResolver {
     return newPost;
   }
 
-  @Query(() => PostConnection)
-  async publishedPosts(
-    @Args() { after, before, first, last }: PaginationArgs,
-    @Args({ name: 'query', type: () => String, nullable: true })
-    query: string,
-    @Args({
-      name: 'orderBy',
-      type: () => PostOrder,
-      nullable: true,
-    })
-    orderBy: PostOrder
-  ) {
-    const a = await findManyCursorConnection(
-      (args) =>
-        this.prisma.post.findMany({
-          include: { author: true },
-          where: {
-            published: true,
-            title: { contains: query || '' },
-          },
-          orderBy: orderBy ? { [orderBy.field]: orderBy.direction } : null,
-          ...args,
-        }),
-      () =>
-        this.prisma.post.count({
-          where: {
-            published: true,
-            title: { contains: query || '' },
-          },
-        }),
-      { first, last, before, after }
-    );
-    return a;
-  }
+  // @Query(() => PostConnection)
+  // async publishedPosts(
+  //   @Args() { after, before, first, last }: PaginationArgs,
+  //   @Args({ name: 'query', type: () => String, nullable: true })
+  //   query: string,
+  //   @Args({
+  //     name: 'orderBy',
+  //     type: () => PostOrder,
+  //     nullable: true,
+  //   })
+  //   orderBy: PostOrder
+  // ) {
+    // const a = await findManyCursorConnection(
+    //   (args) =>
+    //     this.prisma.post.findMany({
+    //       include: { author: true },
+    //       where: {
+    //         published: true,
+    //         title: { contains: query || '' },
+    //       },
+    //       orderBy: orderBy ? { [orderBy.field]: orderBy.direction } : null,
+    //       ...args,
+    //     }),
+    //   () =>
+    //     this.prisma.post.count({
+    //       where: {
+    //         published: true,
+    //         title: { contains: query || '' },
+    //       },
+    //     }),
+    //   { first, last, before, after }
+    // );
+    // return a;
+  // }
 
   @Query(() => [Post])
   userPosts(@Args() id: UserIdArgs) {
